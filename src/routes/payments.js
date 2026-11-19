@@ -136,8 +136,10 @@ router.post(
 
       res.json({ url: session.url, id: session.id });
     } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Failed to create checkout session." });
+      console.error("Checkout session error:", err?.message);
+      res.status(500).json({
+        message: `Failed to create checkout session. ${err?.raw?.message || err?.message || ""}`.trim(),
+      });
     }
   },
 );
