@@ -53,6 +53,15 @@ router.post("/", verifyToken, verifyCustomer, async (req, res) => {
         .status(400)
         .json({ message: "Please provide a valid preferred date." });
     }
+    // Allow one day of slack so every timezone works, but reject clearly past dates.
+    const earliest = new Date();
+    earliest.setUTCHours(0, 0, 0, 0);
+    earliest.setUTCDate(earliest.getUTCDate() - 1);
+    if (date < earliest) {
+      return res
+        .status(400)
+        .json({ message: "Preferred date cannot be in the past." });
+    }
     if (
       ![customerPhone, address, problemDescription].every(
         (value) => typeof value === "string" && value.trim(),
