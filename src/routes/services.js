@@ -22,7 +22,7 @@ router.get("/", async (req, res) => {
     if (serviceMode) filter.serviceMode = serviceMode;
 
     if (search) {
-      const regex = new RegExp(search.trim(), "i");
+      const regex = new RegExp(String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       filter.$or = [{ title: regex }, { category: regex }];
     }
 
@@ -103,7 +103,23 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Service not found." });
     }
 
-    res.json(service);
+    const tech = await db
+      .collection("user")
+      .findOne(
+        { email: service.technicianEmail },
+        { projection: { name: 1, image: 1, area: 1, bio: 1 } },
+      );
+    res.json({
+      ...service,
+      technician: tech
+        ? {
+            name: tech.name,
+            image: tech.image || null,
+            area: tech.area || "",
+            bio: tech.bio || "",
+          }
+        : null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to load service." });
